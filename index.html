@@ -1,3 +1,4 @@
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap"
@@ -32,22 +33,34 @@
     --rs: 10px;
   }
 
+  html,
+  body {
+    height: 100%;
+  }
+
   body,
   #app {
-    font-family: 'Roboto-Mono'
+    font-family: var(--f);
   }
 
   #app {
-    min-height: 600px;
+    min-height: 100dvh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 24px 16px;
+    padding: clamp(12px, 3vw, 32px);
+  }
+
+  /* Vertically center only when there's room (taller viewports / home & results) */
+  @media (min-height: 760px) {
+    #app {
+      align-items: center;
+    }
   }
 
   .wrap {
     width: 100%;
-    max-width: 560px
+    max-width: 720px;
   }
 
   .screen {
@@ -61,7 +74,7 @@
   .home-hero {
     background: var(--p);
     border-radius: var(--r);
-    padding: 2.5rem 2rem 2rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.25rem, 4vw, 2rem);
     margin-bottom: 14px;
     color: #fff;
   }
@@ -94,7 +107,7 @@
   }
 
   .home-title {
-    font-size: 26px;
+    font-size: clamp(22px, 5vw, 30px);
     font-weight: 600;
     line-height: 1.25;
     margin-bottom: 8px;
@@ -273,7 +286,7 @@
     border: 0.5px solid var(--bd);
     border-left: 4px solid var(--p);
     border-radius: 0 var(--r) var(--r) 0;
-    padding: 1.5rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
     margin-bottom: 14px;
   }
 
@@ -288,7 +301,7 @@
   }
 
   .q-text {
-    font-size: 18px;
+    font-size: clamp(16px, 2.4vw, 19px);
     font-weight: 500;
     color: var(--tx);
     line-height: 1.55;
@@ -624,6 +637,120 @@
     height: 9px;
     border-radius: 50%;
     display: inline-block
+  }
+
+  /* ---------- Mobile tuning ---------- */
+  @media (max-width: 480px) {
+    .home-body {
+      padding: 1.25rem;
+    }
+
+    .home-sub {
+      font-size: 15px;
+    }
+
+    .home-pills {
+      gap: 6px;
+      margin-top: 1.25rem;
+    }
+
+    .pill {
+      font-size: 12px;
+      padding: 5px 11px;
+    }
+
+    .res-hdr {
+      padding: 1.75rem 1rem;
+    }
+
+    .res-body {
+      padding: 1.25rem;
+    }
+
+    .res-ring {
+      width: 92px;
+      height: 92px;
+    }
+
+    .res-ring svg {
+      width: 92px;
+      height: 92px;
+    }
+
+    .res-ring-num {
+      font-size: 26px;
+    }
+
+    /* Nav buttons share the row equally on mobile */
+    .nav-row {
+      gap: 8px;
+    }
+
+    .btn-nav {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 10px;
+      font-size: 14px;
+    }
+
+    /* 4 stat chips become a 2x2 grid */
+    .stats-strip {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat-chip .sv {
+      font-size: 20px;
+    }
+
+    .opt {
+      padding: 13px 12px;
+      gap: 10px;
+      min-height: 50px;
+    }
+
+    .opt-text {
+      font-size: 15px;
+    }
+
+    .opt-badge {
+      min-width: 26px;
+      height: 26px;
+      font-size: 12px;
+    }
+
+    .prog-dot {
+      width: 9px;
+      height: 9px;
+    }
+
+    .timer-ring {
+      width: 46px;
+      height: 46px;
+    }
+
+    .timer-ring svg {
+      width: 46px;
+      height: 46px;
+    }
+
+    .timer-inner {
+      font-size: 14px;
+    }
+  }
+
+  /* Very narrow phones */
+  @media (max-width: 360px) {
+    .res-grid {
+      gap: 6px;
+    }
+
+    .res-stat {
+      padding: 10px 4px;
+    }
+
+    .res-stat .rn {
+      font-size: 22px;
+    }
   }
 </style>
 
@@ -1187,7 +1314,7 @@
     wrong = 0,
     skipped = 0;
   const TOTAL = 50,
-    TIME = 10;
+    TIME = 30;
   document.getElementById('bank-count').textContent = ALL_Q.length;
 
   function shuffle(a) {
