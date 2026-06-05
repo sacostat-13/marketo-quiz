@@ -1,0 +1,464 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  #app { padding: 1.5rem 0; max-width: 680px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Home */
+  .home-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    text-align: center;
+  }
+  .home-card h1 { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 8px; }
+  .home-card p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 1.5rem; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; background: var(--color-background-info); color: var(--color-text-info); font-size: 12px; padding: 4px 12px; border-radius: var(--border-radius-md); margin-bottom: 1.5rem; }
+  .btn-primary {
+    background: var(--color-text-primary);
+    color: var(--color-background-primary);
+    border: none;
+    padding: 10px 28px;
+    border-radius: var(--border-radius-md);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .btn-primary:hover { opacity: .85; }
+  .btn-primary:active { transform: scale(.98); }
+
+  /* Quiz header */
+  .quiz-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .q-counter { font-size: 13px; color: var(--color-text-secondary); }
+  .timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .timer-ring { position: relative; width: 44px; height: 44px; }
+  .timer-ring svg { transform: rotate(-90deg); }
+  .timer-ring circle { fill: none; stroke-width: 3; }
+  .timer-track { stroke: var(--color-border-tertiary); }
+  .timer-prog { stroke: #1D9E75; stroke-linecap: round; transition: stroke-dashoffset .9s linear, stroke .3s; }
+  .timer-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  /* Progress bar */
+  .progress-bar-wrap { height: 4px; background: var(--color-border-tertiary); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: #1D9E75; border-radius: 2px; transition: width .3s; }
+
+  /* Question card */
+  .q-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .q-text { font-size: 15px; font-weight: 500; color: var(--color-text-primary); line-height: 1.6; }
+
+  /* Options */
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1rem; }
+  .opt-btn {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 14px;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    transition: background .12s, border-color .12s;
+    line-height: 1.5;
+  }
+  .opt-btn:hover:not(:disabled) { background: var(--color-background-secondary); border-color: var(--color-border-primary); }
+  .opt-btn:disabled { cursor: default; }
+  .opt-btn.correct { background: #EAF3DE; border-color: #639922; color: #27500A; }
+  .opt-btn.wrong { background: #FCEBEB; border-color: #A32D2D; color: #501313; }
+  .opt-letter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--color-background-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .opt-btn.correct .opt-letter { background: #639922; color: #fff; }
+  .opt-btn.wrong .opt-letter { background: #A32D2D; color: #fff; }
+
+  /* Nav */
+  .nav-row { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 1.25rem; }
+  .btn-nav {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 8px 18px;
+    font-size: 14px;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .12s;
+  }
+  .btn-nav:hover { background: var(--color-background-secondary); }
+  .btn-nav:disabled { opacity: .4; cursor: default; }
+
+  /* Stats footer */
+  .stats-bar {
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: 12px 16px;
+    display: flex;
+    gap: 0;
+    justify-content: space-around;
+  }
+  .stat-item { text-align: center; }
+  .stat-label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .04em; }
+  .stat-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+  .stat-val.green { color: #1D9E75; }
+  .stat-val.red { color: #E24B4A; }
+
+  /* Results */
+  .result-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .result-score { font-size: 56px; font-weight: 500; color: var(--color-text-primary); line-height: 1; margin: 1rem 0 .5rem; }
+  .result-label { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
+  .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .result-stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 8px; }
+  .result-stat .n { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .result-stat .l { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+  .grade { font-size: 14px; padding: 6px 16px; border-radius: 20px; display: inline-block; margin-bottom: 1rem; font-weight: 500; }
+  .grade.pass { background: #EAF3DE; color: #27500A; }
+  .grade.fail { background: #FCEBEB; color: #501313; }
+  .grade.great { background: #E1F5EE; color: #04342C; }
+  .timeout-hint { font-size: 12px; color: var(--color-text-secondary); background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 6px 12px; display: inline-block; margin-top: -4px; margin-bottom: 8px; }
+</style>
+
+<div id="app">
+  <h2 class="sr-only">Marketo Engage Business Practitioner certification quiz with 50 questions and 10-second timer per question</h2>
+
+  <!-- Home screen -->
+  <div id="home" class="screen active">
+    <div class="home-card">
+      <div class="badge"><i class="ti ti-certificate" aria-hidden="true"></i> Adobe Certified Professional</div>
+      <h1>Marketo Engage Business Practitioner</h1>
+      <p>50 questions pulled at random from the full bank. Each question is timed at 10 seconds. Score starts at 100% and drops for every wrong answer or timeout.</p>
+      <p style="font-size:13px; color:var(--color-text-secondary); margin-bottom:1.5rem;">Question bank: <strong id="bank-count">—</strong> questions available</p>
+      <button class="btn-primary" onclick="startQuiz()"><i class="ti ti-player-play" aria-hidden="true"></i> Start quiz</button>
+    </div>
+  </div>
+
+  <!-- Quiz screen -->
+  <div id="quiz" class="screen">
+    <div class="quiz-header">
+      <span class="q-counter" id="q-counter">Question 1 / 50</span>
+      <div class="timer-wrap">
+        <div class="timer-ring">
+          <svg viewBox="0 0 44 44" width="44" height="44">
+            <circle class="timer-track" cx="22" cy="22" r="19"/>
+            <circle class="timer-prog" id="timer-arc" cx="22" cy="22" r="19" stroke-dasharray="119.4" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-num" id="timer-num">10</div>
+        </div>
+      </div>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-fill" style="width:2%"></div></div>
+    <div class="q-card"><p class="q-text" id="q-text"></p></div>
+    <div class="options" id="options"></div>
+    <div id="timeout-hint" style="display:none;"><p class="timeout-hint"><i class="ti ti-clock" aria-hidden="true"></i> Time's up — correct answer shown below</p></div>
+    <div class="nav-row">
+      <button class="btn-nav" id="btn-back" onclick="navigate(-1)" disabled><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+      <button class="btn-nav" id="btn-next" onclick="navigate(1)" disabled>Next <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-label">Correct</div><div class="stat-val green" id="s-correct">0</div></div>
+      <div class="stat-item"><div class="stat-label">Wrong</div><div class="stat-val red" id="s-wrong">0</div></div>
+      <div class="stat-item"><div class="stat-label">Skipped</div><div class="stat-val" id="s-skip">0</div></div>
+      <div class="stat-item"><div class="stat-label">Score</div><div class="stat-val" id="s-score">100%</div></div>
+    </div>
+  </div>
+
+  <!-- Results screen -->
+  <div id="results" class="screen">
+    <div class="result-card">
+      <p style="font-size:14px; color:var(--color-text-secondary);">Final score</p>
+      <div class="result-score" id="res-score">—</div>
+      <div id="res-grade"></div>
+      <div class="result-label" id="res-label"></div>
+      <div class="result-grid">
+        <div class="result-stat"><div class="n" id="res-correct">—</div><div class="l">Correct</div></div>
+        <div class="result-stat"><div class="n" id="res-wrong">—</div><div class="l">Wrong</div></div>
+        <div class="result-stat"><div class="n" id="res-skip">—</div><div class="l">Timed out</div></div>
+      </div>
+      <button class="btn-primary" onclick="startQuiz()"><i class="ti ti-refresh" aria-hidden="true"></i> New quiz</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ALL_QUESTIONS = [
+  {q:"What is Marketo Engage primarily used for?",o:["Customer relationship management","Marketing automation and lead management","Financial reporting","Inventory management"],a:1},
+  {q:"What does a Smart List in Marketo do?",o:["Stores static contact records","Dynamically filters people based on criteria","Sends emails to all contacts","Tracks website visitors only"],a:1},
+  {q:"Which Marketo asset is used to send a one-time email to a list?",o:["Trigger campaign","Batch campaign","Smart campaign","Engagement program"],a:1},
+  {q:"What triggers a trigger campaign in Marketo?",o:["A scheduled time","A real-time activity or behavior","A manual export","A CRM sync"],a:1},
+  {q:"What is the purpose of a Marketo Engagement Program?",o:["To send a single email blast","To nurture leads through a series of content over time","To track web page visits","To manage CRM records"],a:1},
+  {q:"What is a 'cadence' in an Engagement Program?",o:["The order of streams","The frequency at which content is sent","The type of email template used","The number of leads in a program"],a:1},
+  {q:"Which score tracks a lead's interest in your content?",o:["Demographic score","Behavioral score","Priority score","Conversion score"],a:1},
+  {q:"What is the purpose of lead scoring in Marketo?",o:["To rank leads by company size","To prioritize leads based on fit and engagement","To delete inactive leads","To assign leads to sales reps automatically"],a:1},
+  {q:"What is a 'stream' in an Engagement Program?",o:["A real-time data feed","A grouping of content that nurtures leads at a given stage","A type of Smart List","An API integration channel"],a:1},
+  {q:"What does MQL stand for in Marketo workflows?",o:["Marketing Qualified Lead","Maximum Query Limit","Multi-Queue Launch","Manual Queue List"],a:0},
+  {q:"What is Marketo's 'Sales Insight' feature primarily used for?",o:["Creating landing pages","Giving sales reps visibility into lead activity","Managing email templates","Running A/B tests"],a:1},
+  {q:"What is the function of a 'Wait' step in a Smart Campaign flow?",o:["Pause the campaign permanently","Delay the next action by a defined time or until a condition is met","Skip inactive leads","Wait for CRM sync"],a:1},
+  {q:"How many times can a lead qualify for a trigger campaign by default?",o:["Unlimited","Once","Twice","It depends on the batch size"],a:1},
+  {q:"What does 'Exhausted' mean for a lead in an Engagement Program?",o:["The lead unsubscribed","The lead has received all content in their stream","The lead's email bounced","The lead was archived"],a:1},
+  {q:"What is a Marketo Form used for?",o:["Designing email layouts","Capturing lead data from web pages","Triggering webhooks","Scoring leads automatically"],a:1},
+  {q:"Which channel does Marketo use to progressively profile leads over multiple form fills?",o:["Progressive Forms","Smart Forms","Dynamic Forms","Adaptive Forms"],a:0},
+  {q:"What does 'Known' vs 'Anonymous' refer to in Marketo?",o:["Whether a lead is a customer or prospect","Whether Marketo has identified a visitor's record or not","Whether the lead is opted in to email","Whether the record was created via API"],a:1},
+  {q:"What is Munchkin used for in Marketo?",o:["Sending push notifications","Tracking web activity and associating it with leads","Managing CRM data","Creating email templates"],a:1},
+  {q:"What is the purpose of the 'Merge Leads' feature?",o:["To move leads between workspaces","To combine duplicate lead records into one","To assign leads to a campaign","To export leads to a CSV"],a:1},
+  {q:"In Marketo, what is a 'Program Status'?",o:["The approval state of a Smart Campaign","A lead's progression state within a program","The delivery status of an email","The sync status with Salesforce"],a:1},
+  {q:"What does a 'Local Asset' mean in Marketo?",o:["An asset stored on a local server","An asset created within a specific program","An asset shared across all workspaces","An asset exported to a partner platform"],a:1},
+  {q:"What is the difference between a Smart Campaign and a batch campaign?",o:["Smart campaigns run once; batch campaigns run continuously","Batch campaigns run on a schedule; trigger campaigns respond to real-time events","There is no difference","Batch campaigns only send emails"],a:1},
+  {q:"What does 'Operational' mean when applied to an email in Marketo?",o:["The email was sent from a CRM","The email bypasses unsubscribe and marketing suspended filters","The email uses a transactional template","The email tracks opens only"],a:1},
+  {q:"How does Marketo handle a hard email bounce?",o:["Re-sends the email after 24 hours","Marks the lead as 'Email Invalid'","Deletes the lead record","Moves the lead to a suppression list"],a:1},
+  {q:"What is a 'Token' in Marketo?",o:["A security key for API access","A dynamic placeholder that pulls in variable data","A type of form field","An event tracking pixel"],a:1},
+  {q:"What type of token would you use to insert a lead's first name in an email?",o:["Program token","Company token","Lead token","Trigger token"],a:2},
+  {q:"What is the purpose of 'Workspace and Partitions' in Marketo?",o:["To segment the Marketo database for different business units","To create sub-domains for landing pages","To organize email templates by type","To split A/B tests across regions"],a:0},
+  {q:"What does 'Sync to CRM' do in a Smart Campaign flow step?",o:["Exports all leads to a CSV","Pushes or updates lead data to the connected CRM","Deletes leads from Marketo that are in the CRM","Creates a new lead in the CRM database automatically"],a:1},
+  {q:"Which report shows you email performance metrics like open rate and click rate?",o:["Lead Performance Report","Email Performance Report","Web Page Activity Report","Campaign Activity Report"],a:1},
+  {q:"What is an A/B test in Marketo email programs called?",o:["Split test","Champion/Challenger test","Multivariate test","Control group test"],a:1},
+  {q:"What does 'Pause' do to a lead in an Engagement Program?",o:["Removes them from the program","Stops them from receiving content without removing them","Marks them as unsubscribed","Moves them to a different stream"],a:1},
+  {q:"What is the Marketo 'Revenue Cycle Modeler' used for?",o:["Forecasting email revenue","Mapping and tracking lead lifecycle stages","Creating financial dashboards","Syncing opportunities from Salesforce"],a:1},
+  {q:"What does the 'Add to List' flow step do?",o:["Creates a new Smart List","Adds a lead to a static list","Enrolls a lead in a program","Sends a list to the CRM"],a:1},
+  {q:"What is a 'Static List' in Marketo?",o:["A list that updates dynamically based on filters","A fixed list of leads that doesn't change automatically","A list of suppressed emails","A list generated by a report"],a:1},
+  {q:"Which Marketo feature allows you to send personalized content based on a lead's attributes?",o:["Dynamic Content","Smart Tokens","Predictive Content","Variable Content"],a:0},
+  {q:"What happens when a lead reaches the end of a stream in an Engagement Program and exhausts all content?",o:["They are automatically deleted","They stop receiving emails until new content is added or they are moved","They restart the stream from the beginning","They are moved to an archive program"],a:1},
+  {q:"What is the purpose of the 'Marketing Suspended' field?",o:["Temporarily prevents a lead from receiving batch marketing emails","Permanently deletes the lead","Marks the lead as unsubscribed","Pauses all Marketo activities"],a:0},
+  {q:"What is a 'Webhook' in Marketo used for?",o:["Tracking email opens","Sending real-time data to or receiving data from external services","Creating dynamic landing pages","Scheduling batch campaigns"],a:1},
+  {q:"What does the 'Change Data Value' flow step do?",o:["Creates a new field","Updates a field value on a lead record","Deletes a field from the schema","Exports field values to a report"],a:1},
+  {q:"What is 'Predictive Content' in Marketo?",o:["AI-driven content recommendations based on lead behavior","Templates pre-built by Adobe","Content scheduled in advance","Dynamic forms with predicted answers"],a:0},
+  {q:"Which asset type is used to host a form and a thank-you message in Marketo?",o:["Email template","Landing page","Smart campaign","Engagement program"],a:1},
+  {q:"What does 'RTP' stand for in Marketo?",o:["Real-Time Personalization","Revenue Tracking Platform","Relational Token Protocol","Responsive Template Preview"],a:0},
+  {q:"What is the best practice for managing lead database hygiene in Marketo?",o:["Never delete leads","Regularly merge duplicates, remove invalid emails, and archive inactive leads","Export all leads monthly","Archive all leads after 6 months"],a:1},
+  {q:"What is a 'Campaign Folder' in Marketo used for?",o:["To store email attachments","To organize programs and assets","To group leads","To archive old campaigns"],a:1},
+  {q:"What does 'Requested Campaign' mean in Marketo?",o:["A campaign triggered by a CRM request","A campaign that requires manual approval before running","A campaign triggered via API or Sales Insight by a sales rep","A campaign requested by a partner"],a:2},
+  {q:"Which Marketo feature lets you track offline event attendance and sync it back to records?",o:["Webinar programs","Event programs","Check-in apps like the Marketo Events app","Both B and C"],a:3},
+  {q:"What is the difference between 'Unsubscribed' and 'Email Invalid' in Marketo?",o:["They are the same","Unsubscribed is a preference opt-out; Email Invalid means the address does not accept mail","Email Invalid means the lead opted out; Unsubscribed means the email bounced","Both automatically delete the lead"],a:1},
+  {q:"What is the 'People Performance Report' used for?",o:["Tracking email clicks by person","Showing database growth and lead counts over time by attribute","Reporting on campaign ROI","Displaying landing page conversion rates"],a:1},
+  {q:"What is 'Account-Based Marketing' (ABM) in Marketo?",o:["Marketing to individual leads only","Targeting and coordinating marketing efforts at the account/company level","Automating billing for Adobe accounts","A type of event program"],a:1},
+  {q:"What does the 'Interesting Moment' flow step do?",o:["Sends an alert to marketing","Records a notable lead activity visible in Sales Insight for the sales team","Triggers an engagement program","Updates the lead score automatically"],a:1},
+  {q:"In Marketo, what is 'Velocity Scripting' used for?",o:["Speeding up email delivery","Writing advanced dynamic content and token logic using the Velocity templating language","Tracking website load speeds","Building API integrations"],a:1},
+  {q:"What does the 'Send Alert' flow step do?",o:["Sends a marketing email to the lead","Sends an internal notification email to a sales rep or team member","Triggers a webhook","Updates CRM activity log"],a:1},
+  {q:"What is the significance of 'Program Cost' in Marketo?",o:["It tracks the Marketo subscription fee","It is used in Revenue Cycle Analytics to calculate program ROI","It limits the number of emails a program can send","It sets the budget for paid media"],a:1},
+  {q:"What is the 'Acquisition Program' field on a lead record used for?",o:["Tracking which ad campaign acquired the lead","Identifying which Marketo program is credited with originally acquiring the lead","Storing UTM parameters","Setting the lead source in Salesforce"],a:1},
+  {q:"Which Marketo report shows you which programs are generating pipeline and revenue?",o:["Email Performance Report","Program Performance Report / Revenue Cycle Analytics","Web Activity Report","Lead Performance Report"],a:1},
+  {q:"What does 'Penalize' mean in the context of lead scoring?",o:["Blocking a lead from receiving emails","Reducing a lead's score for negative behaviors like inactivity","Flagging a lead for deletion","Marking a lead as disqualified in the CRM"],a:1},
+  {q:"What is the 'Activity Log' on a lead record in Marketo?",o:["A list of the lead's social media posts","A chronological record of all activities and interactions Marketo has tracked for that lead","A report of email sends only","A log of CRM sync events"],a:1},
+  {q:"How does Marketo associate an anonymous web visitor with a known lead?",o:["Through IP address lookup only","When the visitor fills out a Marketo form or clicks a tracked email link","Through third-party enrichment only","Marketo cannot associate anonymous visitors"],a:1},
+  {q:"What is 'Multi-Touch Attribution' in Marketo?",o:["Tracking the last touchpoint before conversion","Distributing credit for a conversion across all programs that touched the lead","Attributing revenue only to paid campaigns","Tracking email opens across devices"],a:1},
+  {q:"What is the recommended way to prevent a contact from receiving any Marketo communications?",o:["Delete their record","Set 'Unsubscribed' to true AND 'Marketing Suspended' to true depending on the use case","Archive the lead","Remove them from all Smart Lists"],a:1},
+];
+
+let quiz = [], idx = 0, answered = [], timerInterval = null;
+let correct = 0, wrong = 0, skipped = 0;
+const TOTAL = 50, TIME = 10;
+
+document.getElementById('bank-count').textContent = ALL_QUESTIONS.length;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  quiz = shuffle(ALL_QUESTIONS).slice(0, TOTAL);
+  quiz = quiz.map(q => ({ ...q, o: shuffle(q.o.map((text, i) => ({ text, orig: i }))).map((item, ni) => ({ ...item, newIdx: ni })) }));
+  quiz = quiz.map(q => {
+    const newCorrect = q.o.findIndex(item => item.orig === q.a);
+    return { q: q.q, o: q.o.map(i => i.text), a: newCorrect };
+  });
+  idx = 0;
+  answered = new Array(TOTAL).fill(null);
+  correct = 0; wrong = 0; skipped = 0;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function renderQuestion() {
+  clearTimer();
+  const q = quiz[idx];
+  document.getElementById('q-counter').textContent = `Question ${idx + 1} / ${TOTAL}`;
+  document.getElementById('prog-fill').style.width = ((idx + 1) / TOTAL * 100) + '%';
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('timeout-hint').style.display = 'none';
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  const labels = ['A', 'B', 'C', 'D'];
+  q.o.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="opt-letter">${labels[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    opts.appendChild(btn);
+  });
+
+  const prev = answered[idx];
+  if (prev !== null) {
+    showResult(prev.chosen, q.a, prev.timedOut);
+  } else {
+    startTimer();
+  }
+
+  updateNav();
+  updateStats();
+}
+
+function startTimer() {
+  let t = TIME;
+  const arc = document.getElementById('timer-arc');
+  const num = document.getElementById('timer-num');
+  const circ = 119.4;
+  arc.style.strokeDashoffset = 0;
+  arc.style.stroke = '#1D9E75';
+  num.textContent = t;
+
+  timerInterval = setInterval(() => {
+    t--;
+    num.textContent = t;
+    arc.style.strokeDashoffset = ((TIME - t) / TIME) * circ;
+    if (t <= 3) arc.style.stroke = '#E24B4A';
+    else if (t <= 6) arc.style.stroke = '#BA7517';
+    if (t <= 0) {
+      clearTimer();
+      handleTimeout();
+    }
+  }, 1000);
+}
+
+function clearTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function handleTimeout() {
+  const q = quiz[idx];
+  answered[idx] = { chosen: -1, timedOut: true };
+  skipped++;
+  wrong++;
+  showResult(-1, q.a, true);
+  updateNav();
+  updateStats();
+}
+
+function selectAnswer(chosen) {
+  if (answered[idx] !== null) return;
+  clearTimer();
+  const q = quiz[idx];
+  answered[idx] = { chosen, timedOut: false };
+  if (chosen === q.a) correct++;
+  else wrong++;
+  showResult(chosen, q.a, false);
+  updateNav();
+  updateStats();
+}
+
+function showResult(chosen, correctIdx, timedOut) {
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === correctIdx) btn.classList.add('correct');
+    else if (i === chosen && chosen !== correctIdx) btn.classList.add('wrong');
+  });
+  if (timedOut) document.getElementById('timeout-hint').style.display = 'block';
+}
+
+function updateNav() {
+  document.getElementById('btn-back').disabled = idx === 0;
+  const nextBtn = document.getElementById('btn-next');
+  if (idx === TOTAL - 1) {
+    nextBtn.innerHTML = 'Finish <i class="ti ti-flag-check" aria-hidden="true"></i>';
+    nextBtn.disabled = answered[idx] === null;
+    nextBtn.onclick = showResults;
+  } else {
+    nextBtn.innerHTML = 'Next <i class="ti ti-arrow-right" aria-hidden="true"></i>';
+    nextBtn.disabled = answered[idx] === null;
+    nextBtn.onclick = () => navigate(1);
+  }
+}
+
+function navigate(dir) {
+  idx += dir;
+  if (idx < 0) idx = 0;
+  if (idx >= TOTAL) { showResults(); return; }
+  renderQuestion();
+}
+
+function updateStats() {
+  const answered_count = answered.filter(a => a !== null).length;
+  const scoreVal = answered_count === 0 ? 100 : Math.max(0, Math.round((correct / answered_count) * 100));
+  document.getElementById('s-correct').textContent = correct;
+  document.getElementById('s-wrong').textContent = wrong;
+  document.getElementById('s-skip').textContent = skipped;
+  document.getElementById('s-score').textContent = scoreVal + '%';
+}
+
+function showResults() {
+  clearTimer();
+  showScreen('results');
+  const total = TOTAL;
+  const scoreVal = Math.max(0, Math.round((correct / total) * 100));
+  document.getElementById('res-score').textContent = scoreVal + '%';
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-wrong').textContent = wrong;
+  document.getElementById('res-skip').textContent = skipped;
+  document.getElementById('res-label').textContent = `${correct} of ${total} questions answered correctly`;
+  const gradeEl = document.getElementById('res-grade');
+  let g, cls;
+  if (scoreVal >= 80) { g = '🎯 Ready to certify!'; cls = 'great'; }
+  else if (scoreVal >= 65) { g = '✓ Passing range'; cls = 'pass'; }
+  else { g = 'Keep studying'; cls = 'fail'; }
+  gradeEl.innerHTML = `<span class="grade ${cls}">${g}</span>`;
+}
+</script>
